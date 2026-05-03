@@ -16,60 +16,61 @@ export default function App() {
   const [showFVG, setShowFVG] = useState(true);
 
   return (
-    <div className="flex flex-col h-screen bg-[#0A0A0A] text-[#E0E0E0] font-sans overflow-hidden border-8 border-[#1A1A1A]">
-      <Toaster position="top-right" theme="dark" />
-      
-      {/* Header Section */}
-      <header className="h-16 border-b border-[#222] flex items-center justify-between px-8 bg-[#0D0D0D]">
-        <div className="flex items-center space-x-6">
-          <h1 className="text-2xl font-black tracking-tighter text-white">BX-STAR <span className="text-[#FFD700]">TRADING</span></h1>
-          <nav className="flex space-x-1 bg-[#1A1A1A] p-1 text-[10px] sm:text-xs rounded overflow-x-auto max-w-[60%] sm:max-w-none">
-            {['XAUUSD', 'BTCUSDT', 'DXY', 'GBPUSD', 'GBPJPY', 'USDJPY'].map(sym => (
-               <button
-                 key={sym}
-                 onClick={() => setSymbol(sym as any)}
-                 className={cn(
-                   "px-2 sm:px-4 py-1.5 font-bold transition-colors",
-                   symbol === sym 
-                     ? "bg-[#2A2A2A] text-white rounded shadow-lg" 
-                     : "text-zinc-500 hover:text-zinc-300"
-                 )}
-               >
-                 {sym.replace('USDT', 'USD')}
-               </button>
-            ))}
-          </nav>
-          <select
-            value={interval}
-            onChange={(e) => setInterval(e.target.value)}
-            className="bg-[#1A1A1A] text-white text-xs font-bold px-3 py-1.5 rounded outline-none border border-[#222] hover:border-[#333] transition-colors appearance-none cursor-pointer"
-          >
-            <option value="1m">1m</option>
-            <option value="3m">3m</option>
-            <option value="5m">5m</option>
-            <option value="15m">15m</option>
-            <option value="30m">30m</option>
-            <option value="1h">1h</option>
-            <option value="4h">4h</option>
-            <option value="1d">1D</option>
-            <option value="1w">1W</option>
-          </select>
-        </div>
-        <div className="hidden md:flex items-center space-x-8 text-[10px] font-mono tracking-widest">
-          <div className="flex flex-col items-end">
-            <span className="text-zinc-500 uppercase">Network Latency</span>
-            <span className="text-[#00C851]">0.42 ms / ULTRAFAST</span>
+    <div className="w-full h-screen overflow-auto bg-[#0A0A0A]">
+      <div className="flex flex-col h-full min-w-[1280px] bg-[#0A0A0A] text-[#E0E0E0] font-sans overflow-hidden border-8 border-[#1A1A1A]">
+        <Toaster position="top-right" theme="dark" />
+        
+        {/* Header Section */}
+        <header className="h-16 border-b border-[#222] flex items-center justify-between px-8 bg-[#0D0D0D]">
+          <div className="flex items-center space-x-6">
+            <h1 className="text-2xl font-black tracking-tighter text-white">BX-STAR <span className="text-[#FFD700]">TRADING</span></h1>
+            <nav className="flex space-x-1 bg-[#1A1A1A] p-1 text-xs rounded overflow-x-auto">
+              {['XAUUSD', 'BTCUSDT', 'DXY', 'GBPUSD', 'GBPJPY', 'USDJPY'].map(sym => (
+                 <button
+                   key={sym}
+                   onClick={() => setSymbol(sym as any)}
+                   className={cn(
+                     "px-4 py-1.5 font-bold transition-colors",
+                     symbol === sym 
+                       ? "bg-[#2A2A2A] text-white rounded shadow-lg" 
+                       : "text-zinc-500 hover:text-zinc-300"
+                   )}
+                 >
+                   {sym.replace('USDT', 'USD')}
+                 </button>
+              ))}
+            </nav>
+            <select
+              value={interval}
+              onChange={(e) => setInterval(e.target.value)}
+              className="bg-[#1A1A1A] text-white text-xs font-bold px-3 py-1.5 rounded outline-none border border-[#222] hover:border-[#333] transition-colors appearance-none cursor-pointer"
+            >
+              <option value="1m">1m</option>
+              <option value="3m">3m</option>
+              <option value="5m">5m</option>
+              <option value="15m">15m</option>
+              <option value="30m">30m</option>
+              <option value="1h">1h</option>
+              <option value="4h">4h</option>
+              <option value="1d">1D</option>
+              <option value="1w">1W</option>
+            </select>
           </div>
-          <div className="flex flex-col items-end">
-            <span className="text-zinc-500 uppercase">Market Status</span>
-            <span className="text-[#00C851]">LIVE • OPEN</span>
+          <div className="flex items-center space-x-8 text-[10px] font-mono tracking-widest">
+            <div className="flex flex-col items-end">
+              <span className="text-zinc-500 uppercase">Network Latency</span>
+              <span className="text-[#00C851]">0.42 ms / ULTRAFAST</span>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-zinc-500 uppercase">Market Status</span>
+              <span className="text-[#00C851]">LIVE • OPEN</span>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="flex flex-1">
-        {/* Sidebar: Alerts & Legend */}
-        <aside className="w-72 border-r border-[#222] flex flex-col bg-[#0D0D0D] hidden md:flex">
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar: Alerts & Legend */}
+          <aside className="w-72 border-r border-[#222] flex flex-col bg-[#0D0D0D] shrink-0">
           <div className="p-6 space-y-8">
             <section>
               <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 mb-4 italic">Active Alerts</h3>
@@ -176,6 +177,7 @@ export default function App() {
            </div>
         </main>
       </div>
+    </div>
     </div>
   );
 }
