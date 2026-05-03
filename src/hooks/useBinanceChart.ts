@@ -6,6 +6,7 @@ export interface CandleData {
   high: number;
   low: number;
   close: number;
+  closeTime?: number;
 }
 
 export function useBinanceChart(symbol: string, interval: string = '1m') {
@@ -42,6 +43,7 @@ export function useBinanceChart(symbol: string, interval: string = '1m') {
              high: parseFloat(d[2]),
              low: parseFloat(d[3]),
              close: parseFloat(d[4]),
+             closeTime: d[6],
           }));
           
           setData(cleanData);
@@ -71,6 +73,7 @@ export function useBinanceChart(symbol: string, interval: string = '1m') {
           high: parseFloat(kline.h),
           low: parseFloat(kline.l),
           close: parseFloat(kline.c),
+          closeTime: kline.T,
         };
         if (isMounted) {
           setCurrentCandle(candle);

@@ -8,6 +8,13 @@ export default function App() {
   const [symbol, setSymbol] = useState<'BTCUSDT' | 'XAUUSD'>('BTCUSDT');
   const [interval, setInterval] = useState<string>('1m');
 
+  const [showAMD, setShowAMD] = useState(true);
+  const [showSR, setShowSR] = useState(true);
+  const [showVP, setShowVP] = useState(true);
+  const [showInst, setShowInst] = useState(true);
+  const [showOB, setShowOB] = useState(true);
+  const [showFVG, setShowFVG] = useState(true);
+
   return (
     <div className="flex flex-col h-screen bg-[#0A0A0A] text-[#E0E0E0] font-sans overflow-hidden border-8 border-[#1A1A1A]">
       <Toaster position="top-right" theme="dark" />
@@ -134,7 +141,35 @@ export default function App() {
         {/* Main Chart Area */}
         <main className="flex-1 flex flex-col bg-[#050505] relative w-full">
            <div className="flex-1 relative flex items-center justify-center p-4">
-              <Chart symbol={symbol} interval={interval} />
+              <Chart symbol={symbol} interval={interval} showAMD={showAMD} showSR={showSR} showVP={showVP} showInst={showInst} showOB={showOB} showFVG={showFVG} />
+           </div>
+
+           {/* Controls Bar */}
+           <div className="h-12 border-t border-[#222] bg-[#0A0A0A] flex flex-wrap items-center justify-center space-x-6 px-6 py-2 overflow-x-auto whitespace-nowrap">
+              <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
+                 <input type="checkbox" checked={showAMD} onChange={e => setShowAMD(e.target.checked)} className="accent-[#00C851] w-3 h-3" />
+                 <span>AMD Zones</span>
+              </label>
+              <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
+                 <input type="checkbox" checked={showSR} onChange={e => setShowSR(e.target.checked)} className="accent-[#FFD700] w-3 h-3" />
+                 <span>Support/Resistance</span>
+              </label>
+              <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
+                 <input type="checkbox" checked={showVP} onChange={e => setShowVP(e.target.checked)} className="accent-[#ec4899] w-3 h-3" />
+                 <span>Volume Profile</span>
+              </label>
+              <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
+                 <input type="checkbox" checked={showInst} onChange={e => setShowInst(e.target.checked)} className="accent-white w-3 h-3" />
+                 <span>Prev Day Zones</span>
+              </label>
+              <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
+                 <input type="checkbox" checked={showOB} onChange={e => setShowOB(e.target.checked)} className="accent-white w-3 h-3" />
+                 <span>Order Blocks</span>
+              </label>
+              <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
+                 <input type="checkbox" checked={showFVG} onChange={e => setShowFVG(e.target.checked)} className="accent-[#00C851] w-3 h-3" />
+                 <span>FVG</span>
+              </label>
            </div>
 
            {/* Footer Tape */}
