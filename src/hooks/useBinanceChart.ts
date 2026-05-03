@@ -6,10 +6,11 @@ export interface CandleData {
   high: number;
   low: number;
   close: number;
+  volume?: number;
   closeTime?: number;
 }
 
-export function useBinanceChart(symbol: string, interval: string = '1m') {
+export function useBinanceChart(symbol: string, interval: string = '1m', startTime?: number, endTime?: number) {
   const [data, setData] = useState<CandleData[]>([]);
   const [currentCandle, setCurrentCandle] = useState<CandleData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -30,8 +31,13 @@ export function useBinanceChart(symbol: string, interval: string = '1m') {
       try {
         let cleanData: CandleData[] = [];
         
+        let timeQuery = '';
+        if (startTime && endTime) {
+            timeQuery = `&startTime=${startTime}&endTime=${endTime}`;
+        }
+
         if (isForex) {
-            const response = await fetch(`/api/yahoo/chart?symbol=${symbol}&interval=${interval}&limit=500`);
+            const response = await fetch(`/api/yahoo/chart?symbol=${symbol}&interval=${interval}&limit=500${timeQuery}`);
             const json = await response.json();
             if (isMounted) {
                cleanData = json.map((d: any) => ({
@@ -40,11 +46,12 @@ export function useBinanceChart(symbol: string, interval: string = '1m') {
                  high: parseFloat(d[2]),
                  low: parseFloat(d[3]),
                  close: parseFloat(d[4]),
-                 closeTime: d[6],
+                 volume: parseFloat(d[5] || '0'),
+                 closeTime: d[6] || 0,
                }));
             }
         } else {
-            const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${actualSymbol}&interval=${interval}&limit=500`);
+            const response = await fetch(`/api/binance/klines?symbol=${actualSymbol}&interval=${interval}&limit=500${timeQuery}`);
             const json = await response.json();
             if (isMounted) {
                cleanData = json.map((d: any) => ({
@@ -53,6 +60,7 @@ export function useBinanceChart(symbol: string, interval: string = '1m') {
                  high: parseFloat(d[2]),
                  low: parseFloat(d[3]),
                  close: parseFloat(d[4]),
+                 volume: parseFloat(d[5] || '0'),
                  closeTime: d[6],
                }));
             }
@@ -78,6 +86,7 @@ export function useBinanceChart(symbol: string, interval: string = '1m') {
                                  high: parseFloat(last[2]),
                                  low: parseFloat(last[3]),
                                  close: parseFloat(last[4]),
+                                 volume: parseFloat(last[5] || '0'),
                                  closeTime: last[6],
                             });
                         }
@@ -109,6 +118,7 @@ export function useBinanceChart(symbol: string, interval: string = '1m') {
           high: parseFloat(kline.h),
           low: parseFloat(kline.l),
           close: parseFloat(kline.c),
+          volume: parseFloat(kline.v || '0'),
           closeTime: kline.T,
         };
         if (isMounted) {
@@ -130,7 +140,7 @@ export function useBinanceChart(symbol: string, interval: string = '1m') {
       }
       if (intervalId) clearInterval(intervalId);
     };
-  }, [symbol, interval]);
+  }, [symbol, interval, startTime, endTime]);
 
   return { data, currentCandle, isLoading, error };
 }

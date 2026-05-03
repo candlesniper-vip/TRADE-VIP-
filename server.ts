@@ -17,7 +17,7 @@ async function startServer() {
 
   // API proxy for Yahoo Finance Chart
   app.get("/api/yahoo/chart", (req, res) => {
-    const { symbol, interval, limit } = req.query;
+    const { symbol, interval, limit, startTime, endTime } = req.query;
     const yahooSymbol = SYMBOL_MAP[symbol as string];
     
     if (!yahooSymbol) {
@@ -26,16 +26,23 @@ async function startServer() {
 
     // Map binance intervals to yahoo intervals
     let yInterval = interval as string || '1m';
-    let range = '1d';
+    let rangeQuery = '&range=1d';
     
-    if (yInterval === '1m') range = '5d';
-    else if (yInterval === '3m' || yInterval === '5m' || yInterval === '15m') range = '5d';
-    else if (yInterval === '30m' || yInterval === '1h') range = '1mo';
-    else if (yInterval === '4h') { yInterval = '1h'; range = '1mo'; } // approximate since yahoo lacks 4h
-    else if (yInterval === '1d') range = '3mo';
-    else if (yInterval === '1w') { yInterval = '1wk'; range = '2y'; }
+    if (yInterval === '1m') rangeQuery = '&range=5d';
+    else if (yInterval === '3m' || yInterval === '5m' || yInterval === '15m') rangeQuery = '&range=5d';
+    else if (yInterval === '30m' || yInterval === '1h') rangeQuery = '&range=1mo';
+    else if (yInterval === '4h') { yInterval = '1h'; rangeQuery = '&range=1mo'; } // approximate since yahoo lacks 4h
+    else if (yInterval === '1d') rangeQuery = '&range=3mo';
+    else if (yInterval === '1w') { yInterval = '1wk'; rangeQuery = '&range=2y'; }
 
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=${yInterval}&range=${range}`;
+    let timeQuery = rangeQuery;
+    if (startTime && endTime) {
+        const p1 = Math.floor(Number(startTime) / 1000);
+        const p2 = Math.floor(Number(endTime) / 1000);
+        timeQuery = `&period1=${p1}&period2=${p2}`;
+    }
+
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=${yInterval}${timeQuery}`;
 
     https.get(url, {
       headers: {
@@ -70,6 +77,32 @@ async function startServer() {
             }
         } catch(e) {
             res.status(500).json({ error: "Failed to parse yahoo data" });
+        }
+      });
+    }).on('error', (e) => {
+      res.status(500).json({ error: e.message });
+    });
+  });
+
+  // API proxy for Binance Chart
+  app.get("/api/binance/klines", (req, res) => {
+    const { symbol, interval, limit, startTime, endTime } = req.query;
+    let url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit || 1000}`;
+    if (startTime) url += `&startTime=${startTime}`;
+    if (endTime) url += `&endTime=${endTime}`;
+    
+    https.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+      }
+    }, (binanceRes) => {
+      let data = '';
+      binanceRes.on('data', chunk => data += chunk);
+      binanceRes.on('end', () => {
+        try {
+            res.json(JSON.parse(data));
+        } catch(e) {
+            res.status(500).json({ error: "Failed to parse binance data" });
         }
       });
     }).on('error', (e) => {

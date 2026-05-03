@@ -22,7 +22,7 @@ export function useVolumeProfile(symbol: string) {
             const response = await fetch(`/api/yahoo/chart?symbol=${symbol}&interval=5m&limit=1000`);
             json = await response.json();
         } else {
-            const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${actualSymbol}&interval=5m&limit=1000`);
+            const response = await fetch(`/api/binance/klines?symbol=${actualSymbol}&interval=5m&limit=1000`);
             json = await response.json();
         }
         
