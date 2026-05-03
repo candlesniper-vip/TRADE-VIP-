@@ -1,0 +1,5 @@
+{
+  "name": "BX-STAR Trading App",
+  "description": "Real-time TradingView chart for XAUUSD and BTCUSD featuring ICT Accumulation, Manipulation, and Distribution zone detection and alerts.",
+  "requestFramePermissions": []
+}
