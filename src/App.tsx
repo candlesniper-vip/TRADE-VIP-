@@ -48,14 +48,14 @@ export default function App() {
 
   return (
     <div className="w-full h-screen overflow-auto bg-[#0A0A0A]">
-      <div className="flex flex-col h-full min-w-[1280px] bg-[#0A0A0A] text-[#E0E0E0] font-sans overflow-hidden border-8 border-[#1A1A1A]">
+      <div className="flex flex-col h-full bg-[#0A0A0A] text-[#E0E0E0] font-sans overflow-hidden border-0 md:border-8 border-[#1A1A1A]">
         <Toaster position="top-right" theme="dark" />
         
         {/* Header Section */}
-        <header className="h-16 border-b border-[#222] flex items-center justify-between px-8 bg-[#0D0D0D]">
-          <div className="flex items-center space-x-6">
-            <h1 className="text-2xl font-black tracking-tighter text-white">BX-STAR <span className="text-[#FFD700]">TRADING</span></h1>
-            <nav className="flex space-x-1 bg-[#1A1A1A] p-1 text-xs rounded overflow-x-auto">
+        <header className="h-auto min-h-16 py-2 border-b border-[#222] flex flex-col md:flex-row items-center justify-between px-4 md:px-8 bg-[#0D0D0D] gap-4 md:gap-0">
+          <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto">
+            <h1 className="text-xl md:text-2xl font-black tracking-tighter text-white whitespace-nowrap">BX-STAR <span className="text-[#FFD700]">TRADING</span></h1>
+            <nav className="flex space-x-1 bg-[#1A1A1A] p-1 text-[10px] md:text-xs rounded overflow-x-auto w-full md:w-auto overflow-y-hidden hide-scrollbar">
               {['XAUUSD', 'BTCUSDT', 'DXY', 'GBPUSD', 'GBPJPY', 'USDJPY'].map(sym => (
                  <button
                    key={sym}
@@ -125,9 +125,9 @@ export default function App() {
           </div>
         </header>
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden overflow-y-auto md:overflow-hidden">
           {/* Sidebar: Alerts & Legend */}
-          <aside className="w-72 border-r border-[#222] flex flex-col bg-[#0D0D0D] shrink-0">
+          <aside className="w-full md:w-72 md:border-r border-[#222] flex flex-col bg-[#0D0D0D] shrink-0 order-2 md:order-1">
           <div className="p-6 space-y-8">
             <section>
               <div className="flex items-center justify-between mb-4">
@@ -149,24 +149,24 @@ export default function App() {
                  
                  <div className="grid grid-cols-2 gap-2">
                      <div className="bg-[#1A1A1A] p-2 rounded border border-[#222]">
-                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">15m Horizon</p>
-                        <p className="text-[10px] text-zinc-300 font-medium leading-relaxed">{analysis?.prediction15m || '...'}</p>
+                        <p className="text-[8px] md:text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">15m Horizon</p>
+                        <p className="text-[9px] md:text-[10px] text-zinc-300 font-medium leading-relaxed">{analysis?.prediction15m || '...'}</p>
                      </div>
                      <div className="bg-[#1A1A1A] p-2 rounded border border-[#222]">
-                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">30m Horizon</p>
-                        <p className="text-[10px] text-zinc-300 font-medium leading-relaxed">{analysis?.prediction30m || '...'}</p>
+                        <p className="text-[8px] md:text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">30m Horizon</p>
+                        <p className="text-[9px] md:text-[10px] text-zinc-300 font-medium leading-relaxed">{analysis?.prediction30m || '...'}</p>
                      </div>
                      <div className="bg-[#1A1A1A] p-2 rounded border border-[#222]">
-                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">1h Horizon</p>
-                        <p className="text-[10px] text-zinc-300 font-medium leading-relaxed">{analysis?.prediction1h || '...'}</p>
+                        <p className="text-[8px] md:text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">1h Horizon</p>
+                        <p className="text-[9px] md:text-[10px] text-zinc-300 font-medium leading-relaxed">{analysis?.prediction1h || '...'}</p>
                      </div>
                      <div className="bg-[#1A1A1A] p-2 rounded border border-[#222]">
-                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">2h Horizon</p>
-                        <p className="text-[10px] text-zinc-300 font-medium leading-relaxed">{analysis?.prediction2h || '...'}</p>
+                        <p className="text-[8px] md:text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">2h Horizon</p>
+                        <p className="text-[9px] md:text-[10px] text-zinc-300 font-medium leading-relaxed">{analysis?.prediction2h || '...'}</p>
                      </div>
                      <div className="bg-[#1A1A1A] p-2 rounded border border-[#222] col-span-2">
-                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">4h Horizon</p>
-                        <p className="text-[10px] text-zinc-300 font-medium leading-relaxed">{analysis?.prediction4h || '...'}</p>
+                        <p className="text-[8px] md:text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-1">4h Horizon</p>
+                        <p className="text-[9px] md:text-[10px] text-zinc-300 font-medium leading-relaxed">{analysis?.prediction4h || '...'}</p>
                      </div>
                  </div>
 
@@ -297,7 +297,7 @@ export default function App() {
         </aside>
 
         {/* Main Chart Area */}
-        <main className="flex-1 flex flex-col bg-[#050505] relative w-full">
+        <main className="flex-1 flex flex-col bg-[#050505] relative w-full order-1 md:order-2 min-h-[50vh]">
            <div className="flex-1 relative flex items-center justify-center p-4">
               <Chart 
                 symbol={symbol} 
@@ -318,7 +318,7 @@ export default function App() {
            </div>
 
            {/* Controls Bar */}
-           <div className="h-12 border-t border-[#222] bg-[#0A0A0A] flex flex-wrap items-center justify-center space-x-6 px-6 py-2 overflow-x-auto whitespace-nowrap">
+           <div className="h-auto min-h-[3rem] border-t border-[#222] bg-[#0A0A0A] flex items-center justify-start md:justify-center gap-4 px-4 py-2 overflow-x-auto whitespace-nowrap hide-scrollbar select-none">
               <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
                  <input type="checkbox" checked={showAMD} onChange={e => setShowAMD(e.target.checked)} className="accent-[#00C851] w-3 h-3" />
                  <span>AMD Zones</span>

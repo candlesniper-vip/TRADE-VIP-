@@ -114,10 +114,15 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
+    const isMobile = window.innerWidth < 768;
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { color: '#050505' },
         textColor: '#E0E0E0',
+        fontSize: isMobile ? 8 : 12,
+      },
+      handleScroll: {
+        vertTouchDrag: false,
       },
       grid: {
         vertLines: { color: '#151515' },
@@ -306,21 +311,22 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
     }
 
     if (markersRef.current && showAlpha) {
+      const isMobile = window.innerWidth < 768;
       const markers = signals.map(s => {
         let text = s.label || '';
         if (s.type === 'BUY') {
             if (text.includes('GOD TIER') || text.includes('LONG TERM')) {
-                text = '⤴️ EXACT BOTTOM END OF DOWNTREND 100% RELIABLE';
+                text = isMobile ? '⤴️ GOD TIER' : '⤴️ EXACT BOTTOM END OF DOWNTREND 100% RELIABLE';
             } else if (text.includes('SNIPER')) {
-                text = '⤴️ SNIPER BUY 99.9% ACCURACY';
+                text = isMobile ? '⤴️ SNIPER' : '⤴️ SNIPER BUY 99.9% ACCURACY';
             } else {
                 text = '⤴️ BUY';
             }
         } else {
             if (text.includes('GOD TIER') || text.includes('LONG TERM')) {
-                text = '⤵️ EXACT TOP END OF UPTREND 100% RELIABLE';
+                text = isMobile ? '⤵️ GOD TIER' : '⤵️ EXACT TOP END OF UPTREND 100% RELIABLE';
             } else if (text.includes('SNIPER')) {
-                text = '⤵️ SNIPER SELL 99.9% ACCURACY';
+                text = isMobile ? '⤵️ SNIPER' : '⤵️ SNIPER SELL 99.9% ACCURACY';
             } else {
                 text = '⤵️ SELL';
             }
@@ -331,7 +337,7 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
             color: s.type === 'BUY' ? '#00E676' : '#FF1744',
             shape: s.type === 'BUY' ? 'arrowUp' : 'arrowDown',
             text: text,
-            size: s.label?.includes('LONG TERM') || s.label?.includes('🌟') ? 3 : (s.label?.includes('SNIPER') ? 2 : 1),
+            size: s.label?.includes('LONG TERM') || s.label?.includes('🌟') ? (isMobile ? 2 : 3) : (s.label?.includes('SNIPER') ? (isMobile ? 1 : 2) : (isMobile ? 0 : 1)),
         }
       });
       // Only set markers if different from existing or empty
