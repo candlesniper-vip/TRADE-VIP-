@@ -21,35 +21,71 @@ export function useBinanceChart(symbol: string, interval: string = '1m') {
     let isMounted = true;
     setIsLoading(true);
 
+    const isForex = ['DXY', 'GBPUSD', 'GBPJPY', 'USDJPY'].includes(symbol);
     const actualSymbol = symbol === 'XAUUSD' ? 'PAXGUSDT' : symbol;
+    
+    let intervalId: any;
+
     const fetchHistory = async () => {
       try {
-        const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${actualSymbol}&interval=${interval}&limit=500`);
-        const json = await response.json();
-        if (isMounted) {
-          const formattedData = json.map((d: any) => ({
-            time: (d[0] / 1000) + 24 * 60 * 60, // Adjust for TV expects unix timestamp in seconds
-            open: parseFloat(d[1]),
-            high: parseFloat(d[2]),
-            low: parseFloat(d[3]),
-            close: parseFloat(d[4]),
-          }));
-          // Lightweight charts needs business days or proper unix timestamps.
-          // For simplicity and since crypto is 24/7, standard unix time works if we fix the format
-          // TV requires UTC timestamp in seconds.
-          const cleanData = json.map((d: any) => ({
-             time: Math.floor(d[0] / 1000) as number,
-             open: parseFloat(d[1]),
-             high: parseFloat(d[2]),
-             low: parseFloat(d[3]),
-             close: parseFloat(d[4]),
-             closeTime: d[6],
-          }));
-          
-          setData(cleanData);
-          setCurrentCandle(cleanData[cleanData.length - 1]);
-          setIsLoading(false);
-          connectWs(actualSymbol);
+        let cleanData: CandleData[] = [];
+        
+        if (isForex) {
+            const response = await fetch(`/api/yahoo/chart?symbol=${symbol}&interval=${interval}&limit=500`);
+            const json = await response.json();
+            if (isMounted) {
+               cleanData = json.map((d: any) => ({
+                 time: Math.floor(d[0] / 1000) as number,
+                 open: parseFloat(d[1]),
+                 high: parseFloat(d[2]),
+                 low: parseFloat(d[3]),
+                 close: parseFloat(d[4]),
+                 closeTime: d[6],
+               }));
+            }
+        } else {
+            const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${actualSymbol}&interval=${interval}&limit=500`);
+            const json = await response.json();
+            if (isMounted) {
+               cleanData = json.map((d: any) => ({
+                 time: Math.floor(d[0] / 1000) as number,
+                 open: parseFloat(d[1]),
+                 high: parseFloat(d[2]),
+                 low: parseFloat(d[3]),
+                 close: parseFloat(d[4]),
+                 closeTime: d[6],
+               }));
+            }
+        }
+        
+        if (isMounted && cleanData.length > 0) {
+            setData(cleanData);
+            setCurrentCandle(cleanData[cleanData.length - 1]);
+            setIsLoading(false);
+            
+            if (isForex) {
+                // Poll instead of websocket
+                intervalId = setInterval(async () => {
+                    if (!isMounted) return;
+                    try {
+                        const res = await fetch(`/api/yahoo/chart?symbol=${symbol}&interval=${interval}&limit=1`);
+                        const json = await res.json();
+                        if (json.length > 0) {
+                            const last = json[json.length - 1];
+                            setCurrentCandle({
+                                 time: Math.floor(last[0] / 1000) as number,
+                                 open: parseFloat(last[1]),
+                                 high: parseFloat(last[2]),
+                                 low: parseFloat(last[3]),
+                                 close: parseFloat(last[4]),
+                                 closeTime: last[6],
+                            });
+                        }
+                    } catch(e) {}
+                }, 5000); // poll every 5s
+            } else {
+                connectWs(actualSymbol);
+            }
         }
       } catch (err: any) {
         if (isMounted) setError(err.message);
@@ -92,6 +128,7 @@ export function useBinanceChart(symbol: string, interval: string = '1m') {
       if (wsRef.current) {
         wsRef.current.close();
       }
+      if (intervalId) clearInterval(intervalId);
     };
   }, [symbol, interval]);
 

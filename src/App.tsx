@@ -5,7 +5,7 @@ import { CandlestickChart, Activity, RefreshCw } from 'lucide-react';
 import { cn } from './lib/utils';
 
 export default function App() {
-  const [symbol, setSymbol] = useState<'BTCUSDT' | 'XAUUSD'>('BTCUSDT');
+  const [symbol, setSymbol] = useState<'BTCUSDT' | 'XAUUSD' | 'DXY' | 'GBPUSD' | 'GBPJPY' | 'USDJPY'>('BTCUSDT');
   const [interval, setInterval] = useState<string>('1m');
 
   const [showAMD, setShowAMD] = useState(true);
@@ -23,29 +23,21 @@ export default function App() {
       <header className="h-16 border-b border-[#222] flex items-center justify-between px-8 bg-[#0D0D0D]">
         <div className="flex items-center space-x-6">
           <h1 className="text-2xl font-black tracking-tighter text-white">BX-STAR <span className="text-[#FFD700]">TRADING</span></h1>
-          <nav className="flex space-x-1 bg-[#1A1A1A] p-1 rounded">
-            <button
-              onClick={() => setSymbol('XAUUSD')}
-              className={cn(
-                "px-4 py-1.5 text-xs font-bold transition-colors",
-                symbol === 'XAUUSD' 
-                  ? "bg-[#2A2A2A] text-white rounded shadow-lg" 
-                  : "text-zinc-500 hover:text-zinc-300"
-              )}
-            >
-              XAUUSD
-            </button>
-            <button
-              onClick={() => setSymbol('BTCUSDT')}
-              className={cn(
-                "px-4 py-1.5 text-xs font-bold transition-colors",
-                symbol === 'BTCUSDT' 
-                  ? "bg-[#2A2A2A] text-white rounded shadow-lg" 
-                  : "text-zinc-500 hover:text-zinc-300"
-              )}
-            >
-              BTCUSD
-            </button>
+          <nav className="flex space-x-1 bg-[#1A1A1A] p-1 text-[10px] sm:text-xs rounded overflow-x-auto max-w-[60%] sm:max-w-none">
+            {['XAUUSD', 'BTCUSDT', 'DXY', 'GBPUSD', 'GBPJPY', 'USDJPY'].map(sym => (
+               <button
+                 key={sym}
+                 onClick={() => setSymbol(sym as any)}
+                 className={cn(
+                   "px-2 sm:px-4 py-1.5 font-bold transition-colors",
+                   symbol === sym 
+                     ? "bg-[#2A2A2A] text-white rounded shadow-lg" 
+                     : "text-zinc-500 hover:text-zinc-300"
+                 )}
+               >
+                 {sym.replace('USDT', 'USD')}
+               </button>
+            ))}
           </nav>
           <select
             value={interval}

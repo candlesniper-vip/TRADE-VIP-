@@ -99,15 +99,25 @@ export function useMarketPatterns(data: CandleData[], symbol: string) {
 
   }, [data]);
 
+    const isForex = ['DXY', 'GBPUSD', 'GBPJPY', 'USDJPY'].includes(symbol);
+    const actualSymbol = symbol === 'XAUUSD' ? 'PAXGUSDT' : symbol;
+
   // 2. Fetch Institutional Levels (1D)
   useEffect(() => {
      let isMounted = true;
      const fetch1D = async () => {
         try {
-            const actualSymbol = symbol === 'XAUUSD' ? 'PAXGUSDT' : symbol;
-            const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${actualSymbol}&interval=1d&limit=2`);
-            const json = await res.json();
+            let json;
+            if (isForex) {
+                const res = await fetch(`/api/yahoo/chart?symbol=${symbol}&interval=1d&limit=2`);
+                json = await res.json();
+            } else {
+                const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${actualSymbol}&interval=1d&limit=2`);
+                json = await res.json();
+            }
+            
             if(!isMounted) return;
+            // The logic here remains the same since we mapped Yahoo data to Binance array format
             if(json && json.length >= 2) {
                 const prevD = json[json.length - 2];
                 setInstLevels({

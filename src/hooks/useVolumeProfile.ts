@@ -13,12 +13,18 @@ export function useVolumeProfile(symbol: string) {
   useEffect(() => {
     let isMounted = true;
     const actualSymbol = symbol === 'XAUUSD' ? 'PAXGUSDT' : symbol;
+    const isForex = ['DXY', 'GBPUSD', 'GBPJPY', 'USDJPY'].includes(symbol);
 
     const fetchHistory = async () => {
       try {
-        // Fetch 5m data for the last ~2-3 days
-        const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${actualSymbol}&interval=5m&limit=1000`);
-        const json = await response.json();
+        let json;
+        if (isForex) {
+            const response = await fetch(`/api/yahoo/chart?symbol=${symbol}&interval=5m&limit=1000`);
+            json = await response.json();
+        } else {
+            const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${actualSymbol}&interval=5m&limit=1000`);
+            json = await response.json();
+        }
         
         if (!isMounted) return;
 
