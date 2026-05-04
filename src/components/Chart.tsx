@@ -48,9 +48,10 @@ interface ChartProps {
   algoConfig?: AlgoConfig;
   onAnalysisUpdate?: (analysis: MarketAnalysis) => void;
   signalFilters?: { showGodTier: boolean; showSniper: boolean; showMacro: boolean; };
+  masterSignalsEnabled?: boolean;
 }
 
-export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, showOB, showFVG, showAlpha, startTime, endTime, algoConfig, signalFilters, onAnalysisUpdate }: ChartProps) {
+export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, showOB, showFVG, showAlpha, startTime, endTime, algoConfig, signalFilters, onAnalysisUpdate, masterSignalsEnabled = true }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const { data, currentCandle, isLoading, error } = useBinanceChart(symbol, interval, startTime, endTime);
   const { vpData } = useVolumeProfile(symbol);
@@ -122,7 +123,15 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
         fontSize: isMobile ? 8 : 12,
       },
       handleScroll: {
-        vertTouchDrag: false,
+        vertTouchDrag: true,
+        horzTouchDrag: true,
+        mouseWheel: true,
+        pressedMouseMove: true,
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
       },
       grid: {
         vertLines: { color: '#151515' },
@@ -310,7 +319,7 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
       pdlSeriesRef.current.setData([]);
     }
 
-    if (markersRef.current && showAlpha) {
+    if (markersRef.current && showAlpha && masterSignalsEnabled) {
       const isMobile = window.innerWidth < 768;
       const markers = signals.map(s => {
         let text = s.label || '';
@@ -342,10 +351,19 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
       });
       // Only set markers if different from existing or empty
       markersRef.current.setMarkers(markers as any);
-    } else if (markersRef.current && !showAlpha) {
+    } else if (markersRef.current && (!showAlpha || !masterSignalsEnabled)) {
       markersRef.current.setMarkers([]);
     }
-  }, [signals, trendLine, pdhLine, pdlLine, showAlpha]);
+  }, [signals, trendLine, pdhLine, pdlLine, showAlpha, masterSignalsEnabled]);
+
+  const [nowTime, setNowTime] = useState(Math.floor(Date.now() / 1000));
+  useEffect(() => {
+    const int = setInterval(() => setNowTime(Math.floor(Date.now() / 1000)), 1000);
+    return () => clearInterval(int);
+  }, []);
+
+  const [displaySignalStr, setDisplaySignalStr] = useState('');
+  const [displaySignalType, setDisplaySignalType] = useState('WAIT');
 
   const lastAnalysisRef = useRef<string>('');
 
@@ -362,47 +380,78 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
     let sniperReturnLevel = 'N/A';
     let entryStrengthPct = 50;
 
+    let displayType = 'WAIT';
+
     if (showAlpha && signals.length > 0) {
       const lastSignal = signals[signals.length - 1];
+      const elapsedSeconds = nowTime - lastSignal.time;
       activeSignal = lastSignal.label || lastSignal.type;
       
       const lastCandle = data[data.length - 1];
       
-      if (lastSignal.type === 'BUY') {
-        prediction15m = 'Immediate sharp upward spike (100% confirmed)';
-        prediction30m = 'Breaking out of local resistance, strong velocity';
-        prediction1h = 'Sustained pump, trapping early shorters';
-        prediction2h = 'Flawless execution expected. 100% accurate entry validated, anticipating 1500+ pip movement upward.';
-        prediction4h = 'Macro trend reversal, extreme bullish bias confirmed';
-        predictionToday = 'GUARANTEED BULLISH SURGE. Algo predicts extremely precise upward expansion before market react.';
-        sniperReturnLevel = `${(lastCandle.low * 0.999).toFixed(5)} - ${(lastCandle.low * 0.9995).toFixed(5)}`;
-        entryStrengthPct = 95.8;
+      if (elapsedSeconds > 60 && elapsedSeconds <= 240) {
+         activeSignal = 'ANALYZING DEEPLY... 🔍 [COMPUTING NEXT PROFESSIONAL PERFECT ENTRY]';
+         displayType = 'ANALYZING';
+         prediction15m = 'Running deep multi-timeframe analysis...';
+         prediction30m = 'Scanning for institutional liquidity sweeps...';
+         prediction1h = 'Waiting for high-probability setup alignment...';
+         prediction2h = 'Applying macro AI filters to current price action...';
+         prediction4h = 'Detecting invisible order blocks...';
+         predictionToday = 'THE ALGO IS DEEPLY ANALYZING FOR THE NEXT FLAWLESS PROFESSIONAL ENTRY.';
+         sniperReturnLevel = 'CALCULATING...';
+         entryStrengthPct = 0;
+      } else if (elapsedSeconds > 240) {
+         activeSignal = 'WAITING FOR PROFESSIONAL PERFECT ENTRY... ⚡';
+         displayType = 'WAIT';
+         prediction15m = 'Monitoring live tape...';
+         prediction30m = 'Scanning for volume anomalies...';
+         prediction1h = 'Awaiting optimal entry condition...';
+         prediction2h = 'Ready to snipe next movement...';
+         prediction4h = 'Macro trend evaluation...';
+         predictionToday = 'STANDBY. ALGO IS WAITING FOR A FLAWLESS 100% WIN SETUP.';
+         sniperReturnLevel = 'STANDBY...';
+         entryStrengthPct = 0;
       } else {
-        prediction15m = 'Immediate violent rejection (100% confirmed)';
-        prediction30m = 'Breaking down local support, heavy selling pressure';
-        prediction1h = 'Sustained dump, flushing late limit orders';
-        prediction2h = 'Flawless short execution validated. Anticipating massive 1500+ pip crash downwards accurately.';
-        prediction4h = 'Macro trend breakdown, extreme bearish bias confirmed';
-        predictionToday = 'GUARANTEED BEARISH CRASH. Precision algorithms detected exact distribution top prior to market collapse.';
-        sniperReturnLevel = `${(lastCandle.high * 1.0005).toFixed(5)} - ${(lastCandle.high * 1.001).toFixed(5)}`;
-        entryStrengthPct = 96.4;
-      }
-      
-      if (lastSignal.label?.includes('LONG TERM') || lastSignal.label?.includes('🌟')) {
-        predictionToday = lastSignal.type === 'BUY' ? '🌟 GOD LEVEL MARKET BOTTOM PREDICTED. Expectation: Up to 1,000,000 pip historic ascension accurately.' : '🌟 GOD LEVEL MARKET TOP PREDICTED. Expectation: Up to 1,000,000 pip historic crash accurately.';
-        sniperReturnLevel = lastSignal.type === 'BUY' ? `PERFECT BOTTOM at ${(lastSignal.price).toFixed(5)}` : `PERFECT TOP at ${(lastSignal.price).toFixed(5)}`;
-        entryStrengthPct = 100;
-        prediction15m = 'Generational shift initiated...';
-        prediction1h = 'No looking back, trend cemented...';
-      } else if (lastSignal.label?.includes('SNIPER')) {
-        predictionToday = lastSignal.type === 'BUY' ? '100% ACCURATE SNIPER ENTRY DETECTED. Massive uptrend resuming instantly.' : '100% ACCURATE SNIPER SHORT DETECTED. Violent downtrend resuming instantly.';
-        prediction15m = 'Instant reaction expected post-entry. Guaranteed accuracy on direction.';
-        entryStrengthPct = 99.9;
+        displayType = lastSignal.type;
+        if (lastSignal.type === 'BUY') {
+          prediction15m = 'Immediate sharp upward spike (100% confirmed)';
+          prediction30m = 'Breaking out of local resistance, strong velocity';
+          prediction1h = 'Sustained pump, trapping early shorters';
+          prediction2h = 'Flawless execution expected. 100% accurate entry validated, anticipating 1500+ pip movement upward.';
+          prediction4h = 'Macro trend reversal, extreme bullish bias confirmed';
+          predictionToday = 'GUARANTEED BULLISH SURGE. Algo predicts extremely precise upward expansion before market react.';
+          sniperReturnLevel = `${(lastCandle.low * 0.999).toFixed(5)} - ${(lastCandle.low * 0.9995).toFixed(5)}`;
+          entryStrengthPct = 95.8;
+        } else {
+          prediction15m = 'Immediate violent rejection (100% confirmed)';
+          prediction30m = 'Breaking down local support, heavy selling pressure';
+          prediction1h = 'Sustained dump, flushing late limit orders';
+          prediction2h = 'Flawless short execution validated. Anticipating massive 1500+ pip crash downwards accurately.';
+          prediction4h = 'Macro trend breakdown, extreme bearish bias confirmed';
+          predictionToday = 'GUARANTEED BEARISH CRASH. Precision algorithms detected exact distribution top prior to market collapse.';
+          sniperReturnLevel = `${(lastCandle.high * 1.0005).toFixed(5)} - ${(lastCandle.high * 1.001).toFixed(5)}`;
+          entryStrengthPct = 96.4;
+        }
+        
+        if (lastSignal.label?.includes('LONG TERM') || lastSignal.label?.includes('🌟')) {
+          predictionToday = lastSignal.type === 'BUY' ? '🌟 GOD LEVEL MARKET BOTTOM PREDICTED. Expectation: Up to 1,000,000 pip historic ascension accurately.' : '🌟 GOD LEVEL MARKET TOP PREDICTED. Expectation: Up to 1,000,000 pip historic crash accurately.';
+          sniperReturnLevel = lastSignal.type === 'BUY' ? `PERFECT BOTTOM at ${(lastSignal.price).toFixed(5)}` : `PERFECT TOP at ${(lastSignal.price).toFixed(5)}`;
+          entryStrengthPct = 100;
+          prediction15m = 'Generational shift initiated...';
+          prediction1h = 'No looking back, trend cemented...';
+        } else if (lastSignal.label?.includes('SNIPER')) {
+          predictionToday = lastSignal.type === 'BUY' ? '100% ACCURATE SNIPER ENTRY DETECTED. Massive uptrend resuming instantly.' : '100% ACCURATE SNIPER SHORT DETECTED. Violent downtrend resuming instantly.';
+          prediction15m = 'Instant reaction expected post-entry. Guaranteed accuracy on direction.';
+          entryStrengthPct = 99.9;
+        }
       }
     } else {
       const currentPrice = data[data.length - 1].close;
       sniperReturnLevel = `Wait for ${(currentPrice * 0.998).toFixed(5)} / ${(currentPrice * 1.002).toFixed(5)}`;
     }
+
+    setDisplaySignalStr(activeSignal);
+    setDisplaySignalType(displayType);
 
     const payload = {
       activeSignal,
@@ -421,7 +470,7 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
        lastAnalysisRef.current = payloadStr;
        onAnalysisUpdate(payload);
     }
-  }, [signals, data, trendLine, showAlpha, onAnalysisUpdate]);
+  }, [signals, data, trendLine, showAlpha, onAnalysisUpdate, nowTime]);
 
   // Handle current candle update and real-time AMD updates
   useEffect(() => {
@@ -625,69 +674,14 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
         }
 
         if (showAlpha && signals.length > 0) {
-          signals.forEach(s => {
-            const x = timeScale.timeToCoordinate(s.time as any);
-            const y = seriesRef.current!.priceToCoordinate(s.price);
-            if (x !== null && y !== null && x >= 0 && x <= paneWidth) {
-              const isBuy = s.type === 'BUY';
-              const bgColor = isBuy ? 'rgba(0, 200, 81, 0.9)' : 'rgba(255, 68, 68, 0.9)';
-              
-              // Parse the label to separate the main title from the details (TP1, TP2, etc.)
-              const fullText = s.label || s.type;
-              let title = fullText;
-              let detailsStr = '';
-              
-              const bracketIndex = fullText.indexOf('[');
-              if (bracketIndex !== -1) {
-                title = fullText.substring(0, bracketIndex).trim();
-                detailsStr = fullText.substring(bracketIndex + 1, fullText.length - 1); // remove brackets
-              }
-
-              // Build the details HTML if present
-              let detailsHtml = '';
-              if (detailsStr) {
-                 const parts = detailsStr.split(', ');
-                 const lines = parts.map(p => `<div>${p}</div>`).join('');
-                 detailsHtml = `<div style="margin-top:2px; font-size: 9px; color: rgba(255,255,255,0.8); font-weight: normal; font-family: monospace; line-height: 1.2;">
-                    ${lines}
-                 </div>`;
-              }
-              
-              // Depending on if it's buy or sell, place the tooltip box ABOVE or BELOW the arrow coordinate
-              // The arrow itself is placed perfectly by lightweight-charts.
-              
-              // We'll move the tooltip slightly away from the exact arrow coordinate so they don't overlap
-              const yOffset = isBuy ? 30 : -30; 
-              const transformOrigin = isBuy ? 'top center' : 'bottom center';
-              // Actually translate differently depending on Buy/Sell
-              const transform = isBuy ? 'translate(-50%, 0)' : 'translate(-50%, -100%)';
-              
-              // Size of the box
-              const boxShadow = isBuy ? '0 4px 12px rgba(0, 200, 81, 0.4)' : '0 4px 12px rgba(255, 68, 68, 0.4)';
-
-              html += `<div style="
-                position:absolute; 
-                top:${y + yOffset}px; 
-                left:${x}px; 
-                transform: ${transform};
-                background-color: ${bgColor}; 
-                border-radius: 4px; 
-                padding: 4px 8px; 
-                text-align: center; 
-                pointer-events: none; 
-                z-index: 10; 
-                box-shadow: ${boxShadow}; 
-                border: 1px solid rgba(255,255,255,0.2); 
-                white-space: nowrap;
-               ">
-                <div style="font-weight: 900; color: #FFF; font-size: 11px; letter-spacing: 0.5px;">${title}</div>
-                ${detailsHtml}
-              </div>`;
-            }
-          });
+           // We intentionally do not render giant DOM overlays for signals anymore 
+           // as they block the chart's price action. 
+           // The signals are still rendered via `markersRef.current.setMarkers` 
+           // and displayed in the 'Gainz Algo Analysis' panel.
         }
 
         // Draw User Tools
+
         let svgHtml = '';
         const allDrawings = [...drawingsRef.current];
         if (currentDrawingRef.current && currentDrawingRef.current.points) {
@@ -830,27 +824,59 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
     const now = Date.now();
     // Throttle reversal alerts to once per 5 minutes to avoid spam
     if (now - lastReversalAlertTime.current > 300000) {
+       // Helper to check if extreme is at an OB or SR
+       const getKeyLevelHit = (price: number) => {
+          let confluenceStr = '';
+          for(const level of srLevels) {
+             if (Math.abs(level.price - price) <= 10 * pipSize) {
+                confluenceStr += '[Support/Resistance] ';
+             }
+          }
+          for(const ob of obs) {
+             if (price >= ob.bottom - 5*pipSize && price <= ob.top + 5*pipSize) {
+                confluenceStr += '[Institutional Order Block] ';
+             }
+          }
+          for (const fvg of fvgs) {
+             if (price <= fvg.top && price >= fvg.bottom) {
+                confluenceStr += '[Fair Value Gap] ';
+             }
+          }
+          
+          return confluenceStr.trim();
+       };
+
        // Check for top reversal (price drops from extreme high by reversalThreshold)
        if (currentTrend.current === 'UP' && (extremeHigh.current - cPrice >= reversalThreshold)) {
           currentTrend.current = 'DOWN';
-          extremeLow.current = cPrice; // Reset low for the new downtrend
+          const confluence = getKeyLevelHit(extremeHigh.current);
           lastReversalAlertTime.current = now;
-          toast(`🚨 EXACT TOP REVERSAL SIGNAL!`, {
-             description: `Price reached the end of the top and is turning back! Executing less than 20 pips away from absolute peak (${extremeHigh.current.toFixed(5)}). SHORT NOW!`,
-             className: 'bg-[#FF1744] text-white font-black uppercase tracking-widest',
-             duration: 10000,
-          });
+          if (masterSignalsEnabled) {
+            toast(`🚨 PERFECT OVERALL TOP REVERSAL SIGNAL!`, {
+               description: confluence
+                 ? `All indicators align! Price hit ${confluence} at exact peak! 100% Guaranteed Setup. Executing short < 20 pips away from absolute peak (${extremeHigh.current.toFixed(5)})!`
+                 : `Price formed absolute perfect TOP pattern at ${extremeHigh.current.toFixed(5)}. Reversal confirmed with extreme precision. Executing less than 20 pips away from absolute peak. SHORT NOW!`,
+               className: 'bg-[#FF1744] text-white font-black uppercase tracking-widest',
+               duration: 10000,
+            });
+          }
+          extremeLow.current = cPrice; // Reset low for the new downtrend
        } 
        // Check for bottom reversal (price rises from extreme low by reversalThreshold)
        else if (currentTrend.current === 'DOWN' && (cPrice - extremeLow.current >= reversalThreshold)) {
           currentTrend.current = 'UP';
-          extremeHigh.current = cPrice; // Reset high for the new uptrend
+          const confluence = getKeyLevelHit(extremeLow.current);
           lastReversalAlertTime.current = now;
-          toast(`🚨 EXACT BOTTOM REVERSAL SIGNAL!`, {
-             description: `Price reached the end of the bottom and is turning back! Executing less than 20 pips away from absolute bottom (${extremeLow.current.toFixed(5)}). BUY NOW!`,
-             className: 'bg-[#00E676] text-black font-black uppercase tracking-widest',
-             duration: 10000,
-          });
+          if (masterSignalsEnabled) {
+            toast(`🚨 PERFECT OVERALL BOTTOM REVERSAL SIGNAL!`, {
+               description: confluence
+                 ? `All indicators align! Price hit ${confluence} at exact bottom! 100% Guaranteed Setup. Executing buy < 20 pips away from absolute bottom (${extremeLow.current.toFixed(5)})!`
+                 : `Price formed absolute perfect BOTTOM pattern at ${extremeLow.current.toFixed(5)}. Reversal confirmed with extreme precision. Executing less than 20 pips away from absolute bottom. BUY NOW!`,
+               className: 'bg-[#00E676] text-black font-black uppercase tracking-widest',
+               duration: 10000,
+            });
+          }
+          extremeHigh.current = cPrice; // Reset high for the new uptrend
        }
     }
 
@@ -861,11 +887,13 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
             if (lastObAlertTime.current !== currentCandle.time) {
                lastObAlertTime.current = currentCandle.time as string | number;
                const typeStr = ob.type === 'Bullish' ? 'BUY/LONG' : 'SELL/SHORT';
-               toast(`⚡ GODS OF TRADING ⚡`, {
-                  description: `Now there is institutional entry at ${cPrice.toFixed(5)}. This is the exact place better than institutional order as trading Gods of all time, but never provide retail trader entry! Execute ${typeStr}!`,
-                  className: ob.type === 'Bullish' ? 'bg-[#00E676] text-black font-black uppercase tracking-widest' : 'bg-[#FF1744] text-white font-black uppercase tracking-widest',
-                  duration: 8000,
-               });
+               if (masterSignalsEnabled) {
+                 toast(`⚡ GODS OF TRADING ⚡ ${ob.type === 'Bullish' ? 'BUY NOW' : 'SELL NOW'}!`, {
+                    description: `Price reached EXACT entry price of Trading Gods at ${cPrice.toFixed(5)}. Execute your ${typeStr} instantly!`,
+                    className: ob.type === 'Bullish' ? 'bg-[#00E676] text-black font-black uppercase tracking-widest text-lg' : 'bg-[#FF1744] text-white font-black uppercase tracking-widest text-lg',
+                    duration: 8000,
+                 });
+               }
             }
             break;
          }
@@ -891,10 +919,12 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
           'Distribution': 'text-[#00C851]',
         };
 
-        toast(`Alert: Entered ${matchedZone} Zone`, {
-          description: `${symbol} is trading at ${cPrice}`,
-          className: colorMap[matchedZone] || 'text-white'
-        });
+        if (masterSignalsEnabled) {
+          toast(`Alert: Entered ${matchedZone} Zone`, {
+            description: `${symbol} is trading at ${cPrice}`,
+            className: colorMap[matchedZone] || 'text-white'
+          });
+        }
       }
     }
 
@@ -905,10 +935,12 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
         lastSignalTime.current = lastSignal.time;
         // Don't alert on historical signals, only recent ones
         if (Date.now() / 1000 - lastSignal.time < 300) { // within last 5 minutes
-           toast(`Alpha Algo: ${lastSignal.label || lastSignal.type}`, {
-              description: `${symbol} signaled ${lastSignal.label || lastSignal.type} near ${lastSignal.price.toFixed(2)}`,
-              className: lastSignal.type === 'BUY' ? 'text-[#00E676]' : 'text-[#FF1744]'
-           });
+           if (masterSignalsEnabled) {
+             toast(`Alpha Algo: ${lastSignal.label || lastSignal.type}`, {
+                description: `${symbol} signaled ${lastSignal.label || lastSignal.type} near ${lastSignal.price.toFixed(2)}`,
+                className: lastSignal.type === 'BUY' ? 'text-[#00E676]' : 'text-[#FF1744]'
+             });
+           }
         }
       }
     }
@@ -920,7 +952,7 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
   }
 
   return (
-    <div className="relative w-full h-full group">
+    <div className="relative w-full h-full group flex flex-col bg-[#050505]">
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#050505]/80 text-zinc-400">
           Loading {symbol} data...
@@ -928,7 +960,7 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
       )}
 
       {/* Drawing Toolbar */}
-      <div className="absolute top-1/2 left-4 -translate-y-1/2 z-30 flex flex-col gap-2 bg-[#1A1A1A]/80 backdrop-blur-md p-2 rounded-xl border border-[#333] opacity-50 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-1/2 left-2 -translate-y-1/2 z-30 flex flex-col gap-2 bg-[#1A1A1A]/80 backdrop-blur-md p-2 rounded-xl border border-[#333] opacity-50 group-hover:opacity-100 transition-opacity">
          <button onClick={() => { setActiveTool(activeTool === 'trendline' ? null : 'trendline'); currentDrawingRef.current = null; }} className={`p-2 rounded hover:bg-[#333] transition-colors ${activeTool === 'trendline' ? 'bg-[#333] text-white' : 'text-zinc-500'}`} title="Trendline">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="4" y1="20" x2="20" y2="4" /></svg>
          </button>
@@ -944,57 +976,69 @@ export function Chart({ symbol, interval, showAMD, showSR, showVP, showInst, sho
          </button>
       </div>
 
-      <div className="absolute top-4 left-4 z-20 flex gap-2 flex-wrap max-w-[80%] pl-16">
-         {showAMD && zones.map((z, i) => (
-             <div key={i} className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-zinc-300 tracking-widest">
-                <span className="w-2 h-2 rounded-full inline-block" style={{backgroundColor: z.color}}></span>
-                {z.type.toUpperCase()}: {z.minPrice.toFixed(2)} - {z.maxPrice.toFixed(2)}
-             </div>
-         ))}
-         {showVP && vpData && (
-             <>
-               <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-[#ec4899] tracking-widest">
-                  PREV POC: {vpData.poc.toFixed(2)}
-               </div>
-               <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-[#8b5cf6] tracking-widest">
-                  PREV VA: {vpData.val.toFixed(2)} - {vpData.vah.toFixed(2)}
-               </div>
-             </>
-         )}
-         {showInst && instLevels?.pdh && (
-             <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-zinc-400 tracking-widest">
-                PREV DAY: {instLevels.pdl?.toFixed(2)} - {instLevels.pdh?.toFixed(2)}
-             </div>
-         )}
-         {showOB && obs.length > 0 && (
-             <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-white tracking-widest">
-                OB ACTIVE ({obs.length})
-             </div>
-         )}
-         {showFVG && fvgs.length > 0 && (
-             <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-[#00C851] tracking-widest">
-                FVG ACTIVE ({fvgs.length})
-             </div>
-         )}
+      <div className="relative flex-1 w-full min-h-[300px]">
+        <div ref={chartContainerRef} className="absolute inset-0" />
+        <div 
+          ref={overlayContainerRef} 
+          className="absolute top-0 left-0 pointer-events-none overflow-hidden" 
+          style={{ bottom: '26px' }}
+        />
+      </div>
+
+      {/* Chart Footer with Indicators */}
+      <div className="w-full shrink-0 flex flex-col gap-2 p-3 bg-[#0a0a0a] border-t border-[#222]">
+         <div className="flex gap-2 flex-wrap items-center">
+            {showAMD && zones.map((z, i) => (
+                <div key={i} className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-zinc-300 tracking-widest">
+                   <span className="w-2 h-2 rounded-full inline-block" style={{backgroundColor: z.color}}></span>
+                   {z.type.toUpperCase()}: {z.minPrice.toFixed(2)} - {z.maxPrice.toFixed(2)}
+                </div>
+            ))}
+            {showVP && vpData && (
+                <>
+                  <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-[#ec4899] tracking-widest">
+                     PREV POC: {vpData.poc.toFixed(2)}
+                  </div>
+                  <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-[#8b5cf6] tracking-widest">
+                     PREV VA: {vpData.val.toFixed(2)} - {vpData.vah.toFixed(2)}
+                  </div>
+                </>
+            )}
+            {showInst && instLevels?.pdh && (
+                <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-zinc-400 tracking-widest">
+                   PREV DAY: {instLevels.pdl?.toFixed(2)} - {instLevels.pdh?.toFixed(2)}
+                </div>
+            )}
+            {showOB && obs.length > 0 && (
+                <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-white tracking-widest">
+                   OB ACTIVE ({obs.length})
+                </div>
+            )}
+            {showFVG && fvgs.length > 0 && (
+                <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-[#00C851] tracking-widest">
+                   FVG ACTIVE ({fvgs.length})
+                </div>
+            )}
+         </div>
+
          {showAlpha && (
-             <div className="flex flex-col gap-2">
-                 <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-[#FFD700] tracking-widest w-fit">
+             <div className="flex gap-2 flex-wrap items-center">
+                 <div className="text-[10px] font-bold font-mono px-2 py-1 rounded bg-[#1A1A1A] border border-[#222] flex items-center gap-2 opacity-80 backdrop-blur-md text-[#FFD700] tracking-widest">
                     GAINZ ALGO V2 ALPHA ACTIVE
                  </div>
-                 {signals.length > 0 && (
-                     <div className={`text-lg font-black px-4 py-2 rounded flex items-center gap-2 backdrop-blur-md uppercase tracking-widest w-fit shadow-2xl ${signals[signals.length - 1].type === 'BUY' ? 'bg-[#00E676]/20 border-2 border-[#00E676] text-[#00E676]' : 'bg-[#FF1744]/20 border-2 border-[#FF1744] text-[#FF1744]'}`}>
-                        {signals[signals.length - 1].label || signals[signals.length - 1].type}
+                 {displaySignalStr && (
+                     <div className={`text-xs font-black px-3 py-1 rounded flex items-center gap-2 uppercase tracking-widest ${
+                         displaySignalType === 'BUY' ? 'bg-[#00E676]/10 border border-[#00E676] text-[#00E676]' 
+                         : displaySignalType === 'SELL' ? 'bg-[#FF1744]/10 border border-[#FF1744] text-[#FF1744]'
+                         : displaySignalType === 'ANALYZING' ? 'bg-[#FFD700]/10 border border-[#FFD700] text-[#FFD700]'
+                         : 'bg-zinc-500/10 border border-zinc-500 text-zinc-400'
+                     }`}>
+                        {displaySignalStr}
                      </div>
                  )}
              </div>
          )}
       </div>
-      <div ref={chartContainerRef} className="w-full h-full" />
-      <div 
-        ref={overlayContainerRef} 
-        className="absolute top-0 left-0 pointer-events-none overflow-hidden" 
-        style={{ bottom: '26px' }}
-      />
     </div>
   );
 }

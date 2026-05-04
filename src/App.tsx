@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Chart, MarketAnalysis } from './components/Chart';
+import { NewsFeed } from './components/NewsFeed';
 import { Toaster } from 'sonner';
 import { CandlestickChart, Activity, RefreshCw } from 'lucide-react';
 import { cn } from './lib/utils';
@@ -20,6 +21,7 @@ export default function App() {
   const [showGodTier, setShowGodTier] = useState(true);
   const [showSniper, setShowSniper] = useState(true);
   const [showMacro, setShowMacro] = useState(true);
+  const [masterSignalsEnabled, setMasterSignalsEnabled] = useState(true);
 
   // GainzAlgo Alpha Alert Settings
   const [rsiLowerThreshold, setRsiLowerThreshold] = useState(45);
@@ -111,6 +113,12 @@ export default function App() {
                   Clear
                 </button>
               )}
+            </div>
+            <div className="flex items-center space-x-2 border-l border-[#222] pl-4">
+              <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-[#FFD700] cursor-pointer hover:text-white transition-colors">
+                <input type="checkbox" checked={masterSignalsEnabled} onChange={e => setMasterSignalsEnabled(e.target.checked)} className="accent-[#FFD700] w-3 h-3" />
+                <span>Master Alerts</span>
+              </label>
             </div>
           </div>
           <div className="flex items-center space-x-8 text-[10px] font-mono tracking-widest">
@@ -239,6 +247,8 @@ export default function App() {
               </div>
             </section>
             
+            <NewsFeed />
+            
             <section className="pt-4 border-t border-[#1A1A1A]">
               <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#FFD700] mb-4 italic">GainzAlgo Settings</h3>
               <div className="space-y-4">
@@ -302,49 +312,50 @@ export default function App() {
               <Chart 
                 symbol={symbol} 
                 interval={interval} 
-                showAMD={showAMD} 
-                showSR={showSR} 
-                showVP={showVP} 
-                showInst={showInst} 
-                showOB={showOB} 
-                showFVG={showFVG} 
-                showAlpha={showAlpha} 
+                showAMD={masterSignalsEnabled && showAMD} 
+                showSR={masterSignalsEnabled && showSR} 
+                showVP={masterSignalsEnabled && showVP} 
+                showInst={masterSignalsEnabled && showInst} 
+                showOB={masterSignalsEnabled && showOB} 
+                showFVG={masterSignalsEnabled && showFVG} 
+                showAlpha={masterSignalsEnabled && showAlpha} 
                 startTime={startMs} 
                 endTime={endMs} 
                 algoConfig={algoConfig} 
                 signalFilters={signalFilters}
                 onAnalysisUpdate={setAnalysis} 
+                masterSignalsEnabled={masterSignalsEnabled}
               />
            </div>
 
            {/* Controls Bar */}
-           <div className="h-auto min-h-[3rem] border-t border-[#222] bg-[#0A0A0A] flex items-center justify-start md:justify-center gap-4 px-4 py-2 overflow-x-auto whitespace-nowrap hide-scrollbar select-none">
+           <div className={cn("h-auto min-h-[3rem] border-t border-[#222] bg-[#0A0A0A] flex items-center justify-start md:justify-center gap-4 px-4 py-2 overflow-x-auto whitespace-nowrap hide-scrollbar select-none transition-opacity duration-300", !masterSignalsEnabled && "opacity-50 pointer-events-none")}>
               <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
-                 <input type="checkbox" checked={showAMD} onChange={e => setShowAMD(e.target.checked)} className="accent-[#00C851] w-3 h-3" />
+                 <input type="checkbox" disabled={!masterSignalsEnabled} checked={showAMD} onChange={e => setShowAMD(e.target.checked)} className="accent-[#00C851] w-3 h-3" />
                  <span>AMD Zones</span>
               </label>
               <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
-                 <input type="checkbox" checked={showSR} onChange={e => setShowSR(e.target.checked)} className="accent-[#FFD700] w-3 h-3" />
+                 <input type="checkbox" disabled={!masterSignalsEnabled} checked={showSR} onChange={e => setShowSR(e.target.checked)} className="accent-[#FFD700] w-3 h-3" />
                  <span>Support/Resistance</span>
               </label>
               <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
-                 <input type="checkbox" checked={showVP} onChange={e => setShowVP(e.target.checked)} className="accent-[#ec4899] w-3 h-3" />
+                 <input type="checkbox" disabled={!masterSignalsEnabled} checked={showVP} onChange={e => setShowVP(e.target.checked)} className="accent-[#ec4899] w-3 h-3" />
                  <span>Volume Profile</span>
               </label>
               <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
-                 <input type="checkbox" checked={showInst} onChange={e => setShowInst(e.target.checked)} className="accent-white w-3 h-3" />
+                 <input type="checkbox" disabled={!masterSignalsEnabled} checked={showInst} onChange={e => setShowInst(e.target.checked)} className="accent-white w-3 h-3" />
                  <span>Prev Day Zones</span>
               </label>
               <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
-                 <input type="checkbox" checked={showOB} onChange={e => setShowOB(e.target.checked)} className="accent-white w-3 h-3" />
+                 <input type="checkbox" disabled={!masterSignalsEnabled} checked={showOB} onChange={e => setShowOB(e.target.checked)} className="accent-white w-3 h-3" />
                  <span>Order Blocks</span>
               </label>
               <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
-                 <input type="checkbox" checked={showFVG} onChange={e => setShowFVG(e.target.checked)} className="accent-[#00C851] w-3 h-3" />
+                 <input type="checkbox" disabled={!masterSignalsEnabled} checked={showFVG} onChange={e => setShowFVG(e.target.checked)} className="accent-[#00C851] w-3 h-3" />
                  <span>FVG</span>
               </label>
               <label className="flex items-center space-x-2 text-[10px] uppercase tracking-widest font-bold text-zinc-400 cursor-pointer hover:text-white transition-colors">
-                 <input type="checkbox" checked={showAlpha} onChange={e => setShowAlpha(e.target.checked)} className="accent-[#FFD700] w-3 h-3" />
+                 <input type="checkbox" disabled={!masterSignalsEnabled} checked={showAlpha} onChange={e => setShowAlpha(e.target.checked)} className="accent-[#FFD700] w-3 h-3" />
                  <span>GainzAlgo Alpha</span>
               </label>
            </div>

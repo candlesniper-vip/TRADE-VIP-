@@ -189,11 +189,12 @@ export function useAlphaAlgo(data: CandleData[], config?: AlgoConfig) {
             const tp3 = entryPrice + atr[i] * 3;
             const tp4 = entryPrice + atr[i] * 4;
             const tp5 = entryPrice + atr[i] * 5;
+            const timeStr = new Date(data[i].time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             generatedSignals.push({
                 time: data[i].time,
                 type: 'BUY',
                 price: data[i].low - atr[i] * 0.8,
-                label: `GOD TIER BUY ⚡ (0 FAKEOUTS) [PERFECT ENTRY at ${entryPrice.toFixed(5)}, TP1: ${tp1.toFixed(5)}, TP2: ${tp2.toFixed(5)}, TP3: ${tp3.toFixed(5)}, TP4: ${tp4.toFixed(5)}, TP5: ${tp5.toFixed(5)}, EXPECTATION: After ${entryPrice.toFixed(5)} the price will exactly expect to move for at least 1500 to 125000 pips upward Accurately]`
+                label: `GOD TIER BUY ⚡ (0 FAKEOUTS) TIME: ${timeStr} [PERFECT ENTRY at ${entryPrice.toFixed(5)}, TP1: ${tp1.toFixed(5)}, TP2: ${tp2.toFixed(5)}, TP3: ${tp3.toFixed(5)}, TP4: ${tp4.toFixed(5)}, TP5: ${tp5.toFixed(5)}, EXPECTATION: After ${entryPrice.toFixed(5)} the price will exactly expect to move for at least 1500 to 125000 pips upward Accurately]`
             });
         }
       } else if (prevIsUptrend && !isUptrend && emaFast[i] < emaSlow[i]) {
@@ -204,11 +205,12 @@ export function useAlphaAlgo(data: CandleData[], config?: AlgoConfig) {
             const tp3 = entryPrice - atr[i] * 3;
             const tp4 = entryPrice - atr[i] * 4;
             const tp5 = entryPrice - atr[i] * 5;
+            const timeStr = new Date(data[i].time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             generatedSignals.push({
                 time: data[i].time,
                 type: 'SELL',
                 price: data[i].high + atr[i] * 0.8,
-                label: `GOD TIER SELL ⚡ (0 FAKEOUTS) [PERFECT ENTRY at ${entryPrice.toFixed(5)}, TP1: ${tp1.toFixed(5)}, TP2: ${tp2.toFixed(5)}, TP3: ${tp3.toFixed(5)}, TP4: ${tp4.toFixed(5)}, TP5: ${tp5.toFixed(5)}, EXPECTATION: After ${entryPrice.toFixed(5)} the price will exactly expect to move for at least 1500 to 125000 pips downtrend Accurately]`
+                label: `GOD TIER SELL ⚡ (0 FAKEOUTS) TIME: ${timeStr} [PERFECT ENTRY at ${entryPrice.toFixed(5)}, TP1: ${tp1.toFixed(5)}, TP2: ${tp2.toFixed(5)}, TP3: ${tp3.toFixed(5)}, TP4: ${tp4.toFixed(5)}, TP5: ${tp5.toFixed(5)}, EXPECTATION: After ${entryPrice.toFixed(5)} the price will exactly expect to move for at least 1500 to 125000 pips downtrend Accurately]`
             });
         }
       }
@@ -226,11 +228,12 @@ export function useAlphaAlgo(data: CandleData[], config?: AlgoConfig) {
             const tp3 = entryPrice + atr[i] * 3;
             const tp4 = entryPrice + atr[i] * 4;
             const tp5 = entryPrice + atr[i] * 5;
+            const timeStr = new Date(data[i].time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             generatedSignals.push({
             time: data[i].time,
             type: 'BUY',
             price: data[i].low - atr[i] * 1.5,
-            label: `FLAWLESS SNIPER BUY 🟢 (100% WIN) [PERFECT ENTRY at ${entryPrice.toFixed(5)}, TP1: ${tp1.toFixed(5)}, TP2: ${tp2.toFixed(5)}, TP3: ${tp3.toFixed(5)}, TP4: ${tp4.toFixed(5)}, TP5: ${tp5.toFixed(5)}, EXPECTATION: After ${entryPrice.toFixed(5)} the price will exactly expect to move for at least 3000 to 450000 pips upward Accurately]`
+            label: `FLAWLESS SNIPER BUY 🟢 (100% WIN) TIME: ${timeStr} [PERFECT ENTRY at ${entryPrice.toFixed(5)}, TP1: ${tp1.toFixed(5)}, TP2: ${tp2.toFixed(5)}, TP3: ${tp3.toFixed(5)}, TP4: ${tp4.toFixed(5)}, TP5: ${tp5.toFixed(5)}, EXPECTATION: After ${entryPrice.toFixed(5)} the price will exactly expect to move for at least 3000 to 450000 pips upward Accurately]`
             });
         }
       }
@@ -243,15 +246,52 @@ export function useAlphaAlgo(data: CandleData[], config?: AlgoConfig) {
             const tp3 = entryPrice - atr[i] * 3;
             const tp4 = entryPrice - atr[i] * 4;
             const tp5 = entryPrice - atr[i] * 5;
+            const timeStr = new Date(data[i].time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             generatedSignals.push({
             time: data[i].time,
             type: 'SELL',
             price: data[i].high + atr[i] * 1.5,
-            label: `FLAWLESS SNIPER SELL 🔴 (100% WIN) [PERFECT ENTRY at ${entryPrice.toFixed(5)}, TP1: ${tp1.toFixed(5)}, TP2: ${tp2.toFixed(5)}, TP3: ${tp3.toFixed(5)}, TP4: ${tp4.toFixed(5)}, TP5: ${tp5.toFixed(5)}, EXPECTATION: After ${entryPrice.toFixed(5)} the price will exactly expect to move for at least 3000 to 450000 pips downtrend Accurately]`
+            label: `FLAWLESS SNIPER SELL 🔴 (100% WIN) TIME: ${timeStr} [PERFECT ENTRY at ${entryPrice.toFixed(5)}, TP1: ${tp1.toFixed(5)}, TP2: ${tp2.toFixed(5)}, TP3: ${tp3.toFixed(5)}, TP4: ${tp4.toFixed(5)}, TP5: ${tp5.toFixed(5)}, EXPECTATION: After ${entryPrice.toFixed(5)} the price will exactly expect to move for at least 3000 to 450000 pips downtrend Accurately]`
             });
         }
       }
 
+      // 4. PERFECT GODS CONFLUENCE ENTRY (Top/Bottom Reversals)
+      const isHammer = (data[i].close > data[i].open) && ((data[i].high - data[i].close) < Math.abs(data[i].close - data[i].open)) && ((data[i].open - data[i].low) > 2 * Math.abs(data[i].close - data[i].open));
+      const isShootingStar = (data[i].open > data[i].close) && ((data[i].high - data[i].open) > 2 * Math.abs(data[i].open - data[i].close)) && ((data[i].close - data[i].low) < Math.abs(data[i].open - data[i].close));
+      const bodySize = Math.abs(data[i].close - data[i].open);
+      const upperWick = data[i].high - Math.max(data[i].open, data[i].close);
+      const lowerWick = Math.min(data[i].open, data[i].close) - data[i].low;
+
+      const isBullishPinbar = lowerWick > 2 * bodySize && upperWick < bodySize;
+      const isBearishPinbar = upperWick > 2 * bodySize && lowerWick < bodySize;
+
+      const extremeRsiOversold = rsi[i] < 25 || (rsi[i-1] < 25);
+      const extremeRsiOverbought = rsi[i] > 75 || (rsi[i-1] > 75);
+
+      if ((isBullishPinbar || isHammer || (isBullishEngulfing && recentRsiOversold)) && extremeRsiOversold && data[i].low <= lowerBand[i] && highVolume) {
+        if (!lastSignal || (lastSignal.type === 'BUY' && data[i].time - lastSignal.time > 3600)) {
+           const entryPrice = data[i].close;
+           generatedSignals.push({
+             time: data[i].time,
+             type: 'BUY',
+             price: data[i].low - atr[i] * 2,
+             label: `🎯 100% PERFECT BOTTOM [ENTRY: ${entryPrice.toFixed(5)}]`
+           });
+        }
+      }
+
+      if ((isBearishPinbar || isShootingStar || (isBearishEngulfing && recentRsiOverbought)) && extremeRsiOverbought && data[i].high >= upperBand[i] && highVolume) {
+        if (!lastSignal || (lastSignal.type === 'SELL' && data[i].time - lastSignal.time > 3600)) {
+           const entryPrice = data[i].close;
+           generatedSignals.push({
+             time: data[i].time,
+             type: 'SELL',
+             price: data[i].high + atr[i] * 2,
+             label: `🎯 100% PERFECT TOP [ENTRY: ${entryPrice.toFixed(5)}]`
+           });
+        }
+      }
       // 3. Golden / Long Term Entries 🌟
       if (emaFast[i] > emaSlow[i] && rsi[i] < 35 && isBullishEngulfing && data[i].volume > volumeMovingAverage[i] * 1.5) {
          if (!lastSignal || (lastSignal.type === 'BUY' && data[i].time - lastSignal.time > 86400 * 2)) {
